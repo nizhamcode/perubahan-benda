@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Modul Praktik IPA SMP - Interaktif</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Poppins', 'sans-serif'] },
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#8b5cf6',
+                        darkbg: '#0f172a',
+                        darkcard: '#1e293b'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Mencegah pull-to-refresh & pantulan halaman, tapi TETAP izinkan scroll di dalam div */
+        body, html { 
+            margin: 0; padding: 0; height: 100%; overflow: hidden; 
+            overscroll-behavior: none; 
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* Animasi Transisi View */
+        .view-section {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            transform: translateY(10px);
+        }
+        .view-section.active {
+            display: flex;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Glassmorphism */
+        .glass {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .dark .glass {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Custom tipis scrollbar untuk mobile UX yang lebih baik */
+        .custom-scroll { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.5); border-radius: 10px; }
+        .dark .custom-scroll::-webkit-scrollbar-thumb { background: rgba(100, 116, 139, 0.5); }
+
+        /* Floating Animation */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+            100% { transform: translateY(0px); }
+        }
+        .animate-float { animation: float 3s ease-in-out infinite; }
+        
+        /* Tambahan Animasi Simbol Visual */
+        @keyframes wiggle { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(5deg); } }
+        .animate-wiggle { animation: wiggle 2.5s ease-in-out infinite; }
+        
+        @keyframes bounce-slight { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+        .animate-bounce-slight { animation: bounce-slight 2.5s ease-in-out infinite; }
+        
+        @keyframes pulse-slow { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.8; transform: scale(1.08); } }
+        .animate-pulse-slow { animation: pulse-slow 3s ease-in-out infinite; }
+        
+        @keyframes spin-slow { 100% { transform: rotate(360deg); } }
+        .animate-spin-slow { animation: spin-slow 10s linear infinite; }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-darkbg text-gray-800 dark:text-gray-100 font-sans transition-colors duration-300 flex flex-col h-screen w-screen relative">
+
+    <div id="start-overlay" class="absolute inset-0 z-50 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-800 flex flex-col items-center justify-center text-white p-6">
+        <div class="text-7xl mb-6 animate-float drop-shadow-2xl">🧊</div>
+        <h1 class="text-3xl md:text-4xl font-extrabold mb-3 text-center leading-tight">Modul IPA<br>Interaktif</h1>
+        <p class="text-sm md:text-base mb-10 text-blue-100 text-center opacity-90 max-w-xs">Dari Perubahan Wujud Menjadi Produk Inovatif</p>
+        <button onclick="startApp()" class="px-8 py-4 bg-white text-blue-600 rounded-full font-bold text-lg shadow-[0_10px_25px_rgba(0,0,0,0.2)] active:scale-95 transition-transform duration-200 w-full max-w-xs">
+            🚀 Mulai Belajar
+        </button>
+    </div>
+
+    <header class="h-14 flex items-center justify-between px-5 glass z-20 shrink-0 shadow-sm">
+        <div class="font-bold flex items-center gap-2">
+            <span class="text-xl animate-pulse-slow">🔬</span>
+            <span class="text-[15px] tracking-wide">SainsTerapan</span>
+        </div>
+        <div class="flex gap-3">
+            <button onclick="toggleTheme()" class="w-9 h-9 flex items-center justify-center rounded-full bg-gray-200/50 dark:bg-gray-700/50 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors" id="theme-btn" aria-label="Toggle Theme">
+                ☀️
+            </button>
+        </div>
+    </header>
+
+    <main class="flex-1 relative overflow-hidden w-full mx-auto md:max-w-md lg:max-w-lg bg-white dark:bg-darkcard h-full flex flex-col shadow-2xl">
+        
+        <!-- VIEW 1: HOME / NARASI -->
+        <section id="view-home" class="view-section active flex-col h-full min-h-0 pt-4 pb-0 px-4">
+            <div class="text-center mt-1 shrink-0">
+                <span class="inline-block p-3 rounded-2xl bg-blue-100 dark:bg-blue-900/40 text-4xl animate-spin-slow mb-3 shadow-sm border border-blue-200 dark:border-blue-800">🌍</span>
+                <h2 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-600 leading-tight pb-1">
+                    Mengubah Dunia<br>dengan Wujud Benda
+                </h2>
+            </div>
+            
+            <div class="glass p-5 rounded-2xl flex-1 mt-4 mb-4 flex flex-col relative overflow-hidden shadow-sm border border-gray-100 dark:border-gray-800 min-h-0">
+                <div class="absolute -right-8 -top-8 text-9xl opacity-5 animate-pulse-slow pointer-events-none">🧠</div>
+                <h3 class="font-bold text-lg mb-3 flex items-center gap-2 shrink-0">
+                    <span class="animate-bounce-slight inline-block">💡</span> Fakta Sains Mendalam
+                </h3>
+                
+                <div class="custom-scroll flex-1 pr-2 pb-4">
+                    <p class="text-[13px] md:text-sm leading-relaxed text-gray-600 dark:text-gray-300 text-justify mb-4">
+                        Pernahkah kamu membayangkan <span class="animate-wiggle inline-block">🤔</span> bahwa fenomena perubahan wujud benda bukan sekadar bongkahan es biasa yang mencair menjadi air? <span class="animate-bounce-slight inline-block">🧊➡️💧</span> Pada tingkat molekuler yang sangat kasat mata <span class="animate-spin-slow inline-block">🔬</span>, <b>energi panas (kalor)</b> <span class="animate-pulse-slow inline-block text-red-500">🔥</span> sejatinya bertindak bagaikan "alunan musik" yang mengontrol tarian lincah bagi setiap partikel. 
+                    </p>
+                    <p class="text-[13px] md:text-sm leading-relaxed text-gray-600 dark:text-gray-300 text-justify mb-4">
+                        Semakin panas suhunya <span class="animate-float inline-block">🌡️</span>, partikel akan semakin "menari" dengan liar, bergerak bebas, dan saling menjauh satu sama lain secara drastis (Proses Mencair <span class="animate-bounce-slight inline-block">🍦</span> & Menguap <span class="animate-float inline-block">☁️</span>). Sebaliknya, di saat suhu didinginkan secara ekstrem <span class="animate-pulse-slow inline-block">❄️</span>, molekul-molekul tersebut akan merapat, melambat, dan akhirnya terkunci erat dalam struktur kristal yang sangat kaku (Proses Membeku <span class="animate-wiggle inline-block">🥶</span>).
+                    </p>
+                    <p class="text-[13px] md:text-sm leading-relaxed text-blue-700 dark:text-blue-300 text-justify font-semibold bg-blue-50 dark:bg-blue-900/20 p-3 rounded-xl">
+                        Hebatnya lagi <span class="animate-bounce-slight inline-block">🌟</span>, seluruh teknologi modern, mulai dari <b>kulkas</b> <span class="animate-pulse-slow inline-block">🧊</span> hingga <b>mesin uap roket</b> <span class="animate-float inline-block">🚀</span>, semuanya murni bermula dari kejeniusan manusia dalam menjinakkan "tarian ajaib partikel" ini!
+                    </p>
+                </div>
+                
+                <div class="grid grid-cols-3 gap-2 mt-2 pt-3 border-t border-gray-100 dark:border-gray-700 shrink-0 text-center text-[10px] font-bold">
+                    <div class="bg-blue-50 dark:bg-gray-800 p-2 rounded-xl">
+                        <span class="animate-float inline-block text-lg mb-1">💧</span><br>Cair<br><span class="text-[8px] font-normal text-gray-500">Bebas Menari</span>
+                    </div>
+                    <div class="bg-gray-100 dark:bg-gray-700 p-2 rounded-xl">
+                        <span class="animate-wiggle inline-block text-lg mb-1">🧊</span><br>Padat<br><span class="text-[8px] font-normal text-gray-500">Kaku & Rapat</span>
+                    </div>
+                    <div class="bg-blue-50 dark:bg-gray-800 p-2 rounded-xl">
+                        <span class="animate-bounce-slight inline-block text-lg mb-1">💨</span><br>Gas<br><span class="text-[8px] font-normal text-gray-500">Terbang Liar</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 2: KERANGKA RTKGDFOV -->
+        <section id="view-framework" class="view-section flex-col h-full min-h-0 pt-4 pb-0 px-4">
+            <h2 class="text-xl font-bold text-center mb-4 flex justify-center items-center gap-2 shrink-0">
+                <span class="animate-spin-slow text-primary">⚙️</span> Metode Inovasi Hebat
+            </h2>
+            <div class="flex-1 min-h-0 custom-scroll pb-6">
+                <!-- 1 Column on small mobile, 2 columns on slightly larger devices -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="p-4 bg-red-50 dark:bg-red-900/10 rounded-2xl border border-red-100 dark:border-red-900/30 flex items-start gap-3 shadow-sm active:scale-95 transition-transform">
+                        <div class="text-3xl animate-wiggle bg-red-100 dark:bg-red-800/50 p-2 rounded-xl">👨‍🔬</div>
+                        <div><b class="text-red-600 dark:text-red-400 block text-sm">Role</b><div class="text-[11px] mt-1 leading-relaxed text-gray-600 dark:text-gray-300">Siswa bertransformasi menjadi Ilmuwan Muda yang brilian.</div></div>
+                    </div>
+                    <div class="p-4 bg-orange-50 dark:bg-orange-900/10 rounded-2xl border border-orange-100 dark:border-orange-900/30 flex items-start gap-3 shadow-sm active:scale-95 transition-transform">
+                        <div class="text-3xl animate-bounce-slight bg-orange-100 dark:bg-orange-800/50 p-2 rounded-xl">🛠️</div>
+                        <div><b class="text-orange-600 dark:text-orange-400 block text-sm">Task</b><div class="text-[11px] mt-1 leading-relaxed text-gray-600 dark:text-gray-300">Tantangan merancang karya dan produk nyata inovatif.</div></div>
+                    </div>
+                    <div class="p-4 bg-yellow-50 dark:bg-yellow-900/10 rounded-2xl border border-yellow-100 dark:border-yellow-900/30 flex items-start gap-3 shadow-sm active:scale-95 transition-transform">
+                        <div class="text-3xl animate-pulse-slow bg-yellow-100 dark:bg-yellow-800/50 p-2 rounded-xl">🌍</div>
+                        <div><b class="text-yellow-600 dark:text-yellow-400 block text-sm">Kontext</b><div class="text-[11px] mt-1 leading-relaxed text-gray-600 dark:text-gray-300">Menjawab persoalan dan masalah di kehidupan sehari-hari.</div></div>
+                    </div>
+                    <div class="p-4 bg-green-50 dark:bg-green-900/10 rounded-2xl border border-green-100 dark:border-green-900/30 flex items-start gap-3 shadow-sm active:scale-95 transition-transform">
+                        <div class="text-3xl animate-float bg-green-100 dark:bg-green-800/50 p-2 rounded-xl">🎯</div>
+                        <div><b class="text-green-600 dark:text-green-400 block text-sm">Goal</b><div class="text-[11px] mt-1 leading-relaxed text-gray-600 dark:text-gray-300">Fokus mencapai target hasil yang akurat & dapat digunakan.</div></div>
+                    </div>
+                    <div class="p-4 bg-teal-50 dark:bg-teal-900/10 rounded-2xl border border-teal-100 dark:border-teal-900/30 flex items-start gap-3 shadow-sm active:scale-95 transition-transform">
+                        <div class="text-3xl animate-spin-slow bg-teal-100 dark:bg-teal-800/50 p-2 rounded-xl">🔬</div>
+                        <div><b class="text-teal-600 dark:text-teal-400 block text-sm">Detail</b><div class="text-[11px] mt-1 leading-relaxed text-gray-600 dark:text-gray-300">Mengkaji mendalam setiap prinsip Sains & langkah logisnya.</div></div>
+                    </div>
+                    <div class="p-4 bg-blue-50 dark:bg-blue-900/10 rounded-2xl border border-blue-100 dark:border-blue-900/30 flex items-start gap-3 shadow-sm active:scale-95 transition-transform">
+                        <div class="text-3xl animate-wiggle bg-blue-100 dark:bg-blue-800/50 p-2 rounded-xl">📋</div>
+                        <div><b class="text-blue-600 dark:text-blue-400 block text-sm">Format</b><div class="text-[11px] mt-1 leading-relaxed text-gray-600 dark:text-gray-300">Penyusunan data eksperimen & jurnal prosedur sistematis.</div></div>
+                    </div>
+                    <div class="p-4 bg-indigo-50 dark:bg-indigo-900/10 rounded-2xl border border-indigo-100 dark:border-indigo-900/30 flex items-start gap-3 shadow-sm active:scale-95 transition-transform">
+                        <div class="text-3xl animate-bounce-slight bg-indigo-100 dark:bg-indigo-800/50 p-2 rounded-xl">📦</div>
+                        <div><b class="text-indigo-600 dark:text-indigo-400 block text-sm">Output</b><div class="text-[11px] mt-1 leading-relaxed text-gray-600 dark:text-gray-300">Lahirnya karya atau prototipe nyata yang siap pakai.</div></div>
+                    </div>
+                    <div class="p-4 bg-purple-50 dark:bg-purple-900/10 rounded-2xl border border-purple-100 dark:border-purple-900/30 flex items-start gap-3 shadow-sm active:scale-95 transition-transform">
+                        <div class="text-3xl animate-pulse-slow bg-purple-100 dark:bg-purple-800/50 p-2 rounded-xl">🧪</div>
+                        <div><b class="text-purple-600 dark:text-purple-400 block text-sm">Verification</b><div class="text-[11px] mt-1 leading-relaxed text-gray-600 dark:text-gray-300">Tahap krusial uji coba kelayakan & kualitas fungsi produk.</div></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 3: LAB PRAKTIK -->
+        <section id="view-labs" class="view-section flex-col h-full min-h-0 pt-4 pb-0 px-4 relative">
+            <h2 class="text-xl font-bold text-center mb-1 shrink-0">🛠️ Laboratorium Mini</h2>
+            <p class="text-[11px] text-center text-gray-500 dark:text-gray-400 mb-4 shrink-0">Ketuk eksperimen untuk melihat detail instruksi!</p>
+            
+            <div class="flex-1 min-h-0 custom-scroll pb-6">
+                <!-- Grid Labs -->
+                <div class="grid grid-cols-2 gap-3" id="lab-grid">
+                    <!-- Injected via JS -->
+                </div>
+            </div>
+
+            <!-- MODAL BACKDROP -->
+            <div id="modal-backdrop" onclick="closeLab()" class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm z-30 opacity-0 pointer-events-none transition-opacity duration-300"></div>
+
+            <!-- MODAL BOTTOM SHEET UX -->
+            <div id="lab-modal" class="absolute inset-x-0 bottom-0 h-[85%] bg-white dark:bg-darkcard rounded-t-3xl shadow-[0_-15px_40px_rgba(0,0,0,0.15)] z-40 transform translate-y-full transition-transform duration-300 ease-out flex flex-col">
+                
+                <!-- Drag Handle -->
+                <div class="flex justify-center pt-3 pb-2 shrink-0 touch-none" onclick="closeLab()">
+                    <div class="w-12 h-1.5 bg-gray-300 dark:bg-gray-600 rounded-full"></div>
+                </div>
+
+                <!-- Header Modal -->
+                <div class="flex items-center justify-between px-5 pb-3 border-b border-gray-100 dark:border-gray-800 shrink-0">
+                    <h3 id="lab-title" class="font-bold text-[17px] truncate pr-2 text-gray-800 dark:text-gray-100">Judul</h3>
+                    <button onclick="closeLab()" class="w-8 h-8 flex items-center justify-center bg-gray-100 dark:bg-gray-800 hover:bg-red-100 dark:hover:bg-red-900/30 text-gray-500 hover:text-red-500 rounded-full transition-colors active:scale-90">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                
+                <!-- Lab Tabs -->
+                <div class="flex text-[13px] font-semibold border-b border-gray-100 dark:border-gray-800 shrink-0 bg-gray-50/50 dark:bg-gray-800/30">
+                    <button onclick="switchLabTab('alat')" class="lab-tab flex-1 py-3 border-b-2 border-primary text-primary transition-colors" id="tab-btn-alat">Bahan 🛒</button>
+                    <button onclick="switchLabTab('cara')" class="lab-tab flex-1 py-3 text-gray-500 border-b-2 border-transparent transition-colors" id="tab-btn-cara">Cara 🔬</button>
+                    <button onclick="switchLabTab('sains')" class="lab-tab flex-1 py-3 text-gray-500 border-b-2 border-transparent transition-colors" id="tab-btn-sains">Sains 🧠</button>
+                </div>
+
+                <!-- Lab Content Area -->
+                <div class="flex-1 p-5 relative custom-scroll">
+                    <div id="lab-content-alat" class="lab-content-panel block animate-fade-in">Bahan</div>
+                    <div id="lab-content-cara" class="lab-content-panel hidden animate-fade-in">Cara</div>
+                    <div id="lab-content-sains" class="lab-content-panel hidden animate-fade-in">Sains</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 4: QUIZ -->
+        <section id="view-quiz" class="view-section flex-col h-full min-h-0 pt-4 pb-4 px-4">
+            <h2 class="text-xl font-bold text-center mb-2 shrink-0">🎯 Uji Pemahaman</h2>
+            
+            <div id="quiz-container" class="flex-1 flex flex-col justify-center min-h-0">
+                <div class="text-center text-xs font-bold text-primary mb-3 uppercase tracking-wider shrink-0">Pertanyaan <span id="q-num">1</span> dari 5</div>
+                
+                <div class="glass p-6 rounded-3xl mb-5 min-h-[140px] flex items-center justify-center text-center shadow-sm shrink-0 border border-gray-200 dark:border-gray-700">
+                    <p id="q-text" class="font-semibold text-[15px] leading-relaxed text-gray-800 dark:text-gray-100"></p>
+                </div>
+                
+                <div class="custom-scroll flex-1 pb-2">
+                    <div id="q-options" class="flex flex-col gap-3">
+                        <!-- Options injected here -->
+                    </div>
+                </div>
+            </div>
+
+            <div id="quiz-result" class="hidden flex-1 flex-col items-center justify-center text-center">
+                <div class="text-7xl mb-6 drop-shadow-lg" id="res-icon">🏆</div>
+                <h3 class="text-3xl font-extrabold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-primary">Skor: <span id="res-score">100</span></h3>
+                <p id="res-msg" class="mb-8 text-sm text-gray-500 dark:text-gray-400 px-6 leading-relaxed"></p>
+                <button onclick="startQuiz()" class="px-8 py-3.5 bg-primary hover:bg-blue-600 text-white rounded-full font-bold shadow-lg shadow-blue-500/30 active:scale-95 transition-all">
+                    Coba Lagi 🔄
+                </button>
+            </div>
+        </section>
+
+        <!-- BOTTOM NAVIGATION (Fixed) -->
+        <nav class="h-[68px] shrink-0 bg-white dark:bg-slate-900 border-t border-gray-100 dark:border-gray-800 flex justify-around items-center px-1 pb-safe shadow-[0_-5px_15px_rgba(0,0,0,0.03)] z-20">
+            <button onclick="switchView('home')" class="nav-btn active flex flex-col items-center justify-center h-full w-16 text-gray-400 data-[active=true]:text-primary transition-colors" data-view="home" data-active="true">
+                <span class="text-[22px] mb-1">🏠</span><span class="text-[10px] font-bold">Narasi</span>
+            </button>
+            <button onclick="switchView('framework')" class="nav-btn flex flex-col items-center justify-center h-full w-16 text-gray-400 data-[active=true]:text-primary transition-colors" data-view="framework" data-active="false">
+                <span class="text-[22px] mb-1">⚙️</span><span class="text-[10px] font-bold">Metode</span>
+            </button>
+            <button onclick="switchView('labs')" class="nav-btn flex flex-col items-center justify-center h-full w-16 text-gray-400 data-[active=true]:text-primary transition-colors relative" data-view="labs" data-active="false">
+                <span class="text-[22px] mb-1">🔬</span><span class="text-[10px] font-bold">Praktik</span>
+                <span class="absolute top-2 right-3 w-2.5 h-2.5 bg-red-500 border-2 border-white dark:border-slate-900 rounded-full animate-pulse"></span>
+            </button>
+            <button onclick="switchView('quiz')" class="nav-btn flex flex-col items-center justify-center h-full w-16 text-gray-400 data-[active=true]:text-primary transition-colors" data-view="quiz" data-active="false">
+                <span class="text-[22px] mb-1">📝</span><span class="text-[10px] font-bold">Kuis</span>
+            </button>
+        </nav>
+        
+        <!-- CSS for fade in inside modal -->
+        <style>
+            @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+            .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+            /* Safe area padding for newer iPhones */
+            .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+        </style>
+    </main>
+
+    <script>
+        // --- WEB AUDIO API ENGINE ---
+        let audioCtx;
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playSound(type) {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+            
+            if (type === 'click') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(600, now);
+                osc.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
+                gainNode.gain.setValueAtTime(0.2, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now); osc.stop(now + 0.1);
+            } else if (type === 'pop') {
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(400, now);
+                gainNode.gain.setValueAtTime(0.15, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now); osc.stop(now + 0.1);
+            } else if (type === 'correct') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(600, now); osc.frequency.setValueAtTime(800, now + 0.1);
+                gainNode.gain.setValueAtTime(0.15, now); gainNode.gain.linearRampToValueAtTime(0, now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(300, now); osc.frequency.linearRampToValueAtTime(200, now + 0.2);
+                gainNode.gain.setValueAtTime(0.15, now); gainNode.gain.linearRampToValueAtTime(0, now + 0.2);
+                osc.start(now); osc.stop(now + 0.2);
+            }
+        }
+
+        function startApp() {
+            initAudio(); playSound('click');
+            const overlay = document.getElementById('start-overlay');
+            overlay.style.opacity = '0';
+            overlay.style.transition = 'opacity 0.4s ease';
+            setTimeout(() => overlay.style.display = 'none', 400);
+        }
+
+        const html = document.documentElement;
+        const themeBtn = document.getElementById('theme-btn');
+        function toggleTheme() {
+            playSound('pop');
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark'); themeBtn.textContent = '🌙';
+            } else {
+                html.classList.add('dark'); themeBtn.textContent = '☀️';
+            }
+        }
+
+        // --- VIEW SWITCHING ---
+        function switchView(viewId) {
+            playSound('click');
+            
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                const isActive = btn.dataset.view === viewId;
+                btn.setAttribute('data-active', isActive ? 'true' : 'false');
+                if(isActive) {
+                    btn.classList.add('text-primary'); btn.classList.remove('text-gray-400');
+                } else {
+                    btn.classList.remove('text-primary'); btn.classList.add('text-gray-400');
+                }
+            });
+
+            document.querySelectorAll('.view-section').forEach(view => view.classList.remove('active'));
+            document.getElementById('view-' + viewId).classList.add('active');
+
+            if(viewId !== 'labs') closeLab();
+        }
+
+        // --- LAB DATA ---
+        const labData = [
+            {
+                id: 1, icon: '🍦', title: 'Ice Cream Es & Garam',
+                alat: '<span class="animate-bounce-slight inline-block">🥛</span> 200mL Susu Segar Murni<br><span class="animate-wiggle inline-block">🥄</span> 3sdm Gula Pasir Manis<br><span class="animate-pulse-slow inline-block">🧊</span> 1kg Bongkahan Es Batu<br><span class="animate-float inline-block">🧂</span> 200g Garam Dapur Kasar<br><span class="animate-spin-slow inline-block">🥣</span> 2 Wadah bersarang',
+                cara: '1. Campur susu & gula di wadah kecil tertutup rapat <span class="animate-wiggle inline-block text-lg">🥣</span>.<br><br>2. Tenggelamkan wadah kecil di jantung wadah besar berisi campuran es & garam <span class="animate-pulse-slow inline-block text-lg">🥶</span>.<br><br>3. Goyangkan penuh antusias selama 15 menit <span class="animate-bounce-slight inline-block text-lg">💪</span>.<br><br>4. Saksikan keajaiban: wujud Cair mengeras menjadi Padat <span class="animate-float inline-block text-lg">🍦</span>!',
+                sains: '<b>Penurunan Titik Beku (Cryoscopic):</b> <span class="animate-spin-slow inline-block text-xl">❄️</span><br><br>Garam merusak stabilitas kristal air-es <span class="animate-pulse-slow inline-block">💥</span> memaksa es mencair dengan menyerap energi panas ekstra dari susu cair <span class="animate-float inline-block">🔥</span>. Suhu menukik tajam, membekukan susu!'
+            },
+            {
+                id: 2, icon: '🧊', title: 'Es Batu Berwarna',
+                alat: '<span class="animate-float inline-block">💧</span> Air minum jernih<br><span class="animate-pulse-slow inline-block">🍓</span> Sirup / Pewarna cerah<br><span class="animate-wiggle inline-block">🧊</span> Cetakan silikon',
+                cara: '1. Teteskan sirup ke air <span class="animate-float inline-block text-lg">🫗</span>.<br><br>2. Tuang ke ruang cetakan <span class="animate-spin-slow inline-block text-lg">🥄</span>.<br><br>3. Kurung di freezer hingga menjadi kristal padat <span class="animate-pulse-slow inline-block text-lg">❄️</span>.',
+                sains: '<b>Membeku Mengunci Gerak:</b> <span class="animate-bounce-slight inline-block text-xl">🥶</span><br><br>Freezer merampas sisa panas <span class="animate-float inline-block">🌡️</span>. Pergerakan molekul air melambat dan "terkunci" dalam formasi kaku membentuk kristal padat. <span class="animate-wiggle inline-block">🧱</span>'
+            },
+            {
+                id: 3, icon: '🚰', title: 'Mini Distilasi',
+                alat: '<span class="animate-spin-slow inline-block">🥣</span> Mangkuk kaca besar<br><span class="animate-pulse-slow inline-block">💧</span> Air Garam pekat<br><span class="animate-bounce-slight inline-block">🥛</span> Gelas kaca mungil<br><span class="animate-float inline-block">🍲</span> Tutup logam terbalik<br><span class="animate-wiggle inline-block">🧊</span> Es batu',
+                cara: '1. Posisikan gelas di pusat laut air garam <span class="animate-pulse-slow inline-block text-lg">🌊</span>.<br><br>2. Tutup dengan penutup terbalik, timbun es di atasnya <span class="animate-float inline-block text-lg">🧊</span>.<br><br>3. Nyalakan sumber panas <span class="animate-wiggle inline-block text-lg">🔥</span>.<br><br>4. Uap naik, menabrak dingin, meneteskan air murni! <span class="animate-bounce-slight inline-block text-lg">💧</span>',
+                sains: '<b>Siklus Menguap & Mengembun:</b> <span class="animate-spin-slow inline-block text-xl">🔄</span><br><br>Panas merenggut air dari garam menjadi gas (Cair → Gas) <span class="animate-float inline-block">💨</span>. Saat membentur tutup dingin, uap kehilangan energi, kembali meneteskan air murni (Gas → Cair). Garam tertinggal di bawah! <span class="animate-pulse-slow inline-block">🧂</span>'
+            },
+            {
+                id: 4, icon: '🌧️', title: 'Hujan Gelas',
+                alat: '<span class="animate-bounce-slight inline-block">🥛</span> Gelas tinggi bening<br><span class="animate-pulse-slow inline-block">💧</span> Air hangat<br><span class="animate-wiggle inline-block">🧊</span> Es batu<br><span class="animate-float inline-block">🍽️</span> Piring penyekat',
+                cara: '1. Tuangkan air hangat ke dalam gelas <span class="animate-pulse-slow inline-block text-lg">♨️</span>.<br><br>2. Sekap uap dengan piring kecil <span class="animate-float inline-block text-lg">🍽️</span>.<br><br>3. Taruh es di punggung piring <span class="animate-wiggle inline-block text-lg">🧊</span>.<br><br>4. Saksikan lahirnya "hujan" rintik-rintik mini! <span class="animate-bounce-slight inline-block text-lg">🌧️</span>',
+                sains: '<b>Siklus Air Semesta:</b> <span class="animate-spin-slow inline-block text-xl">🌍</span><br><br>Uap (air laut dipanaskan) <span class="animate-float inline-block">☀️</span> menembus lapisan super dingin (piring es), berkondensasi menjadi awan mikroskopis, jatuh ditarik gravitasi sebagai presipitasi! <span class="animate-pulse-slow inline-block">⛈️</span>'
+            },
+            {
+                id: 5, icon: '🍫', title: 'Cokelat Casting',
+                alat: '<span class="animate-pulse-slow inline-block">🍫</span> Cokelat batang<br><span class="animate-wiggle inline-block">🥣</span> Wadah baja<br><span class="animate-float inline-block">🍲</span> Air panas (Double boiler)<br><span class="animate-bounce-slight inline-block">🧊</span> Cetakan silikon',
+                cara: '1. Tim cacahan cokelat secara lembut di atas uap <span class="animate-spin-slow inline-block text-lg">🥄</span>.<br><br>2. Saat bermetamorfosis menjadi cairan kental, tuang ke cetakan <span class="animate-float inline-block text-lg">🍫</span>.<br><br>3. Kirim ke zona pendingin hingga kembali mengeras. <span class="animate-pulse-slow inline-block text-lg">🥶</span>',
+                sains: '<b>Elastisitas Perubahan Wujud:</b> <span class="animate-wiggle inline-block text-xl">🔁</span><br><br>Ikatan molekul cokelat meleleh di 30°C <span class="animate-float inline-block">🌡️</span>. Ketika didinginkan, molekul cerdas merangkai diri kembali. Sifat Reversible murni! <span class="animate-bounce-slight inline-block">✨</span>'
+            },
+            {
+                id: 6, icon: '📦', title: 'Kotak Pendingin',
+                alat: '<span class="animate-float inline-block">📦</span> Kardus tebal<br><span class="animate-wiggle inline-block">📰</span> Kertas koran remas<br><span class="animate-bounce-slight inline-block">🧻</span> Kain perca<br><span class="animate-pulse-slow inline-block">🧊</span> Es batu & Botol',
+                cara: '1. Lapisi rongga kardus dengan kertas & kain <span class="animate-spin-slow inline-block text-lg">🧱</span>.<br><br>2. Sembunyikan botol dan es di jantung bunker ini <span class="animate-float inline-block text-lg">🧊</span>.<br><br>3. Bandingkan laju pencairan dengan es di ruang terbuka. <span class="animate-pulse-slow inline-block text-lg">⏱️</span>',
+                sains: '<b>Isolasi Termal:</b> <span class="animate-wiggle inline-block text-xl">🛡️</span><br><br>Kertas & kain menjebak "udara diam" <span class="animate-bounce-slight inline-block">🌬️</span>. Udara diam adalah isolator termal terhebat (perisai) yang menahan gempuran panas dari luar! <span class="animate-pulse-slow inline-block">⛔🔥</span>'
+            }
+        ];
+
+        const labGrid = document.getElementById('lab-grid');
+        labData.forEach(lab => {
+            const btn = document.createElement('button');
+            btn.className = 'glass p-4 rounded-2xl flex flex-col items-center justify-center gap-3 hover:bg-blue-50/50 dark:hover:bg-gray-800/50 active:scale-95 transition-transform border border-gray-100 dark:border-gray-700 shadow-sm';
+            btn.onclick = () => openLab(lab.id);
+            btn.innerHTML = `<span class="text-4xl filter drop-shadow-md">${lab.icon}</span><span class="text-[12px] font-bold text-center leading-tight text-gray-700 dark:text-gray-200">${lab.title}</span>`;
+            labGrid.appendChild(btn);
+        });
+
+        const labModal = document.getElementById('lab-modal');
+        const modalBackdrop = document.getElementById('modal-backdrop');
+        
+        function openLab(id) {
+            playSound('pop');
+            const data = labData.find(l => l.id === id);
+            document.getElementById('lab-title').innerText = `${data.icon} ${data.title}`;
+            document.getElementById('lab-content-alat').innerHTML = `<ul class="list-disc pl-5 text-[14px] text-gray-700 dark:text-gray-300 space-y-3">${data.alat.split('<br>').map(i=>`<li>${i}</li>`).join('')}</ul>`;
+            document.getElementById('lab-content-cara').innerHTML = `<div class="text-[14px] text-gray-700 dark:text-gray-300 space-y-2 leading-relaxed">${data.cara}</div>`;
+            document.getElementById('lab-content-sains').innerHTML = `<div class="text-[14px] text-gray-700 dark:text-gray-300 bg-blue-50/80 dark:bg-blue-900/20 p-4 rounded-2xl border border-blue-100 dark:border-blue-800/50 leading-relaxed shadow-inner">${data.sains}</div>`;
+            
+            switchLabTab('alat');
+            
+            // Show Bottom Sheet
+            modalBackdrop.classList.remove('opacity-0', 'pointer-events-none');
+            labModal.classList.remove('translate-y-full');
+        }
+
+        function closeLab() {
+            if(!labModal.classList.contains('translate-y-full')) playSound('pop');
+            modalBackdrop.classList.add('opacity-0', 'pointer-events-none');
+            labModal.classList.add('translate-y-full');
+        }
+
+        function switchLabTab(tab) {
+            playSound('click');
+            ['alat', 'cara', 'sains'].forEach(t => {
+                const btn = document.getElementById(`tab-btn-${t}`);
+                const content = document.getElementById(`lab-content-${t}`);
+                if(t === tab) {
+                    btn.classList.add('border-primary', 'text-primary');
+                    btn.classList.remove('text-gray-500', 'border-transparent');
+                    content.classList.remove('hidden');
+                    content.classList.add('block');
+                } else {
+                    btn.classList.remove('border-primary', 'text-primary');
+                    btn.classList.add('text-gray-500', 'border-transparent');
+                    content.classList.add('hidden');
+                    content.classList.remove('block');
+                }
+            });
+        }
+
+        const questions = [
+            { q: "Mengapa garam ditambahkan pada es batu saat membuat ice cream?", opts: ["Agar rasa asin", "Menurunkan titik beku es", "Mempercepat penguapan", "Menyerap air"], ans: 1 },
+            { q: "Pada alat distilasi, perubahan wujud yang terjadi secara berurutan adalah...", opts: ["Mencair lalu Menguap", "Membeku lalu Mencair", "Menguap lalu Mengembun", "Menyublim lalu Mengembun"], ans: 2 },
+            { q: "Dalam metode RTKGDFOV, huruf 'V' (Verification) berarti tahap di mana siswa harus...", opts: ["Mencari bahan baku", "Menguji kualitas produk", "Membuat bentuk", "Menulis laporan"], ans: 1 },
+            { q: "Bahan apa yang paling ampuh digunakan untuk kotak pendingin penahan panas?", opts: ["Kertas & kain (Isolator)", "Besi (Konduktor)", "Kaca bening", "Air biasa"], ans: 0 },
+            { q: "Saat memanaskan cokelat menggunakan teknik 'double boiler', yang terjadi adalah...", opts: ["Padat -> Gas", "Gas -> Cair", "Cair -> Padat", "Padat -> Cair"], ans: 3 }
+        ];
+
+        let currentQ = 0; let score = 0;
+
+        function startQuiz() {
+            currentQ = 0; score = 0;
+            document.getElementById('quiz-container').classList.remove('hidden');
+            document.getElementById('quiz-container').classList.add('flex');
+            document.getElementById('quiz-result').classList.add('hidden');
+            document.getElementById('quiz-result').classList.remove('flex');
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const q = questions[currentQ];
+            document.getElementById('q-num').innerText = currentQ + 1;
+            document.getElementById('q-text').innerText = q.q;
+            
+            const optsContainer = document.getElementById('q-options');
+            optsContainer.innerHTML = '';
+            
+            q.opts.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'w-full p-4 text-left text-[14px] font-semibold rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-darkcard hover:bg-blue-50 dark:hover:bg-gray-800 transition-all shadow-sm active:scale-[0.98]';
+                btn.innerText = opt;
+                btn.onclick = () => checkAnswer(index, btn);
+                optsContainer.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selected, btnElement) {
+            const correct = questions[currentQ].ans;
+            const btns = document.getElementById('q-options').querySelectorAll('button');
+            btns.forEach(b => { b.disabled = true; b.classList.remove('active:scale-[0.98]', 'hover:bg-blue-50', 'dark:hover:bg-gray-800'); });
+
+            if (selected === correct) {
+                playSound('correct');
+                btnElement.classList.add('border-green-500', 'bg-green-50', 'dark:bg-green-900/30', 'text-green-700', 'dark:text-green-400');
+                score += 20;
+            } else {
+                playSound('wrong');
+                btnElement.classList.add('border-red-500', 'bg-red-50', 'dark:bg-red-900/30', 'text-red-700', 'dark:text-red-400');
+                btns[correct].classList.add('border-green-500', 'bg-green-50', 'dark:bg-green-900/30', 'text-green-700', 'dark:text-green-400');
+            }
+
+            setTimeout(() => {
+                currentQ++;
+                if (currentQ < questions.length) { playSound('pop'); loadQuestion(); }
+                else { showResult(); }
+            }, 1200);
+        }
+
+        function showResult() {
+            playSound('correct');
+            document.getElementById('quiz-container').classList.add('hidden');
+            document.getElementById('quiz-container').classList.remove('flex');
+            document.getElementById('quiz-result').classList.remove('hidden');
+            document.getElementById('quiz-result').classList.add('flex');
+            
+            document.getElementById('res-score').innerText = score;
+            let msg, icon;
+            if(score === 100) { msg = "Sempurna! Insting Ilmuwanmu luar biasa tajam!"; icon = "🏆"; }
+            else if(score >= 60) { msg = "Bagus! Fondasi pemahamanmu sudah kokoh."; icon = "🌟"; }
+            else { msg = "Terus semangat! Ilmuwan hebat lahir dari eksperimen yang gagal. Mari baca narasinya lagi!"; icon = "💡"; }
+            
+            document.getElementById('res-msg').innerText = msg;
+            document.getElementById('res-icon').innerText = icon;
+        }
+
+        startQuiz();
+    </script>
+</body>
+</html>
